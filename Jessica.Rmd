@@ -1,0 +1,83 @@
+---
+title: "EDA"
+author: "Yifeng Fan"
+date: "2023-02-24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(esquisse)
+```
+
+
+```{r, echo=FALSE}
+
+pre <- readxl::read_excel("Pre-workshop coded.xlsx", col_names = T)
+post <- readxl::read_excel("Post-workshop coded.xlsx", col_names = T)
+pre_efficacy <- pre[-1,c(11,19:33)]
+post_efficacy <- post[c(-1,-21),c(12,14:28)]
+pre_efficacy <- apply(pre_efficacy, 2, as.integer)
+pre_efficacy <- as.data.frame(pre_efficacy)
+first_column_pre <- pre_efficacy[,1 ]
+pre_efficacy <- pre_efficacy %>% 
+  select(-1) %>% 
+  mutate(avg = rowMeans(., na.rm = T)) %>%
+  bind_cols(first_column_pre) %>%
+  rename("ID" = `...17`)
+x <- pre_efficacy[, c(ncol(pre_efficacy)-1, ncol(pre_efficacy))]
+```
+
+```{r}
+post_efficacy <- apply(post_efficacy, 2, as.integer)
+post_efficacy <- as.data.frame(post_efficacy)
+first_column_post <- post_efficacy[,1 ]
+post_efficacy <- post_efficacy %>% 
+  select(-1) %>% 
+  mutate(avg = rowMeans(., na.rm = T)) %>%
+  bind_cols(first_column_post) %>%
+  rename("ID" = `...17`)
+y <- post_efficacy[, c(ncol(post_efficacy)-1, ncol(post_efficacy))]
+```
+
+```{r}
+df <- x %>% left_join(y, by="ID")
+ggplot(df, aes(x=avg.x, y=avg.y))+
+  geom_point() +
+  geom_abline(y=x) +
+  labs(x="pre-workshop scores", y="post-workshop scores") +
+  ylim(15,100) +
+  xlim(15,100)
+```
+
+```{r}
+data_xy<- merge(x, y, by = "ID")
+
+plot_prepost<- ggplot(data_xy) +
+          geom_violin(aes(x = "", y = avg.x, color= data_xy$avg.x, fill = "pre") ,scale = "area", alpha= 0.5, trim= F) +
+          geom_violin(aes(x = "", y = avg.y,  color= data_xy$avg.y, fill = "post") , scale = "area", alpha= 0.5, trim= F) +
+          theme_bw()+
+          ggtitle("pre VS post")+
+          ylab("Rank")
+
+plot_prepost
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
